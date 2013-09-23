@@ -71,7 +71,7 @@ int mac80211_openmon_cb(lorcon_t *context) {
 	socklen_t optlen;
 
 	if (strlen(context->vapname) == 0) {
-		snprintf(context->vapname, MAX_IFNAME_LEN, "%smon", context->ifname);
+		snprintf(context->vapname, MAX_IFNAME_LEN, "%s", context->ifname);
 	}
 
 	if ((parent = nl80211_find_parent(context->vapname)) == NULL) {

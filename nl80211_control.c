@@ -607,17 +607,14 @@ char *nl80211_find_parent(const char *interface) {
 	char dirpath[1024];
 	char *ret;
 
-	snprintf(dirpath, 1024, "/sys/class/net/%s/phy80211/device", interface);
+	snprintf(dirpath, 1024, "/sys/class/net/%s/phy80211/device/ieee80211", interface);
 
 	if ((devdir = opendir(dirpath)) == NULL)
 		return NULL;
 
 	while ((devfile = readdir(devdir)) != NULL) {
-		if (strlen(devfile->d_name) < 13)
-			continue;
-
-		if (strncmp("ieee80211:phy", devfile->d_name, 13) == 0) {
-			ret = strdup(devfile->d_name + 10);
+		if (strncmp("phy", devfile->d_name, 3) == 0) {
+			ret = strdup(devfile->d_name);
 			closedir(devdir);
 			return ret;
 		}
