@@ -319,4 +319,16 @@ struct ieee80211_ccmp {
 	} u2;
 
 } __attribute__ ((packed));
+
+/* Start part(LLC and SNAP) of payload of IEEE80211 frame */
+struct ieee80211_llc {
+    /* LLC */
+    uint8_t illc_dsap;
+    uint8_t illc_ssap;
+    uint8_t illc_control;
+    /* SNAP */
+    uint8_t illc_oc[3]; 
+    uint16_t illc_ether_type;
+} __attribute__ ((packed));
+
 #endif

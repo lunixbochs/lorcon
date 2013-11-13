@@ -137,6 +137,7 @@ struct lorcon_dot11_extra {
 	unsigned int qos, sequence, duration, fragment;
 
 	uint16_t capability;
+    uint16_t llc_type; /* Must be useful while trying to determine type of packet i.e. IP packet*/
 };
 
 void lorcon_packet_free(lorcon_packet_t *packet);

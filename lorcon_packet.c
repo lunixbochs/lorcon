@@ -213,6 +213,7 @@ int lorcon_packet_decode(lorcon_packet_t *packet) {
 	u_int16_t *pu16, eu16, fcs = 0;
 	u_int8_t rt_wr_flags;
 	struct lorcon_dot11_extra *extra;
+    struct ieee80211_llc *llc;
 
 	if (packet->dlt == DLT_PRISM_HEADER) {
 		if (packet->length > sizeof(avs_80211_1_header) &&
@@ -388,8 +389,26 @@ int lorcon_packet_decode(lorcon_packet_t *packet) {
 			}
 
 			if (offt < packet->length_header) {
+
 				packet->length_data = packet->length_header - offt;
 				packet->packet_data = packet->packet_header + offt;
+
+                /* set LLC type*/
+                if (packet->length_data > sizeof(struct ieee80211_llc)) {
+		            /* looks like a SNAP */
+		            if (packet->packet_data[0] == 0xaa &&
+			            packet->packet_data[1] == 0xaa &&
+			            packet->packet_data[2] == 0x03) {
+
+			            llc = (struct ieee80211_llc *) packet->packet_data;
+                        extra->llc_type = llc->illc_ether_type;
+
+                        packet->length_data = packet->length_data - sizeof(struct ieee80211_llc);
+                        packet->packet_data = packet->packet_data + sizeof(struct ieee80211_llc);
+		            }
+	            }
+	
+
 			}
 		}
 	}
@@ -593,7 +612,7 @@ lorcon_packet_t *lorcon_packet_decrypt(lorcon_t *context, lorcon_packet_t *packe
 }
 
 int lorcon_packet_to_dot3(lorcon_packet_t *packet, u_char **data) {
-	int length = 0, offt = 0;
+	int length = 0;
 	struct lorcon_dot11_extra *extra = (struct lorcon_dot11_extra *) packet->extra_info;
 
 	if (packet->length_data == 0 || packet->packet_data == NULL ||
@@ -607,23 +626,13 @@ int lorcon_packet_to_dot3(lorcon_packet_t *packet, u_char **data) {
 		return 0;
 	}
 
-	if (packet->length_data > 8) {
-		/* looks like a SNAP */
-		if (packet->packet_data[0] == 0xaa &&
-			packet->packet_data[1] == 0xaa &&
-			packet->packet_data[2] == 0x03) {
-
-			offt = 8;
-		}
-	}
-	
-	length = 12 + packet->length_data - offt;
+	length = 12 + packet->length_data;
 
 	*data = (u_char *) malloc(sizeof(u_char) * length);
 
 	memcpy(*data, extra->dest_mac, 6);
 	memcpy(*data + 6, extra->source_mac, 6);
-	memcpy(*data + 12, packet->packet_data + offt, packet->length_data - offt);
+	memcpy(*data + 12, packet->packet_data, packet->length_data);
 
 	return length;
 }
