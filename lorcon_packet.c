@@ -613,7 +613,7 @@ int lorcon_packet_to_dot3(lorcon_packet_t *packet, u_char **data) {
 			packet->packet_data[1] == 0xaa &&
 			packet->packet_data[2] == 0x03) {
 
-			offt = 6;
+			offt = 8;
 		}
 	}
 	
